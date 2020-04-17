@@ -541,9 +541,6 @@ public SearchResultEntity search(String offset, String limit, String sort) {
         .withTag("span.kind", "app")
         .withTag("app.class", "com.oracle.demo.mall.ProductProvider")
         .withTag("app.method", "search")
-        .withTag("app.arg_0", offset)
-        .withTag("app.arg_1", limit)
-        .withTag("app.arg_2", sort)
         .start();
 
     // このメソッド内のビジネス・ロジック
