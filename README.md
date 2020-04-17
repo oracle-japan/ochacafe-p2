@@ -518,7 +518,7 @@ $ kubectl port-forward svc/monolith-eshop 8080:8080
 トレーシングは[Microservice chassis](https://microservices.io/patterns/microservice-chassis.html)にもある通り、ビジネス・ロジックに依存しないCross-cutting concernのため、その実装を直接アプリケーションコードに埋め込むと、ビジネス・ロジックのコードを汚してしまう恐れがあります。
 さらに、システム全体のトレーサビリティを維持するために「どのような情報」を「どのような形式」で残すべきかはサービス間で共通化することが重要です。
 
-まず、単純に OpenTracing API を使ってビジネス・ロジックのコードと一緒に直接トレース情報を埋め込んだ場合のコードを示します。
+まず初めに、単純に OpenTracing API を使ってビジネス・ロジックのコードと一緒に直接トレース情報を埋め込んだ場合のコードを示します。
 
 ```java
 public SearchResultEntity search(String offset, String limit, String sort) {
@@ -586,14 +586,14 @@ public SearchResultEntity search(String offset, String limit, String sort) {
 }
 ```
 
-今回の方法は次の2つの手法でビジネス・ロジックのコードとトレーシングのコードを極力分離する実装をしています。
+今回は次の2つの手法でビジネス・ロジックのコードとトレーシングのコードを極力分離する実装をしています。
 
 - [CDI Interceptorでトレーシングのコードを切り離す](#CDI-Interceptorでトレーシングのコードを切り離す)
 - [one linerでbegin/endを記述できるようにする](#one-linerでbeginendを記述できるようにする)
 
 ### CDI Interceptorでトレーシングのコードを切り離す
 
-CDI InterceptorはCDIでインジェクションされるオブジェクトのメソッドが、プロキシ・オブジェクトから呼び出される前後に特定の定型的な処理を実行させる仕組みです。メソッド呼出しの前後でログ出力を行う、今回のようなトレース情報を残す、などの共通的な処理をビジネス・ロジックから切り離す用途として利用されます。
+CDI InterceptorはCDIでインジェクションされるオブジェクトのメソッドが、プロキシ・オブジェクトから呼び出される前後に特定の定型的な処理を実行させる仕組みを提供します。メソッド呼出しの前後でログ出力を行う、今回のようなトレース情報を残す、などの共通的な処理をビジネス・ロジックから切り離す用途として利用されます。
 
 ```java
 @Traceable // 1. アノテーションのみでメソッド呼出しをトレース情報として残す
@@ -634,7 +634,7 @@ final class TraceableInterceptor {
 ```
 
 このように @Interceptor のアノテーションを付与したクラスに、関連付けるアノテーション @Traceable を指定します。
-@AroundInvoke のアノテーションを付与したメソッドが、インジェクションされるオブジェクトのメソッドを呼び出す際に呼び出され、引数のInvocationContextから呼出し対象となるメソッドの、クラス名/メソッド名/メソッド引数等を抽出することができます。
+@AroundInvoke のアノテーションを付与したメソッドが、インジェクションされるオブジェクトのメソッドを呼び出す際に呼び出され、引数のInvocationContextから呼出し対象となるメソッドの、クラス名/メソッド名/メソッド引数などを抽出することができます。
 
 ```java
 		// 呼び出したクラス、メソッドの情報をタグに付与
@@ -658,7 +658,7 @@ final class TraceableInterceptor {
 			result = ic.proceed();
 ```
 
-InvocationContext#proceed()を呼び出す事で、InterceptorはCDIでインジェクションされるオブジェクトのメソッドが実際に呼び出されますので、InvocationContext#proceed() の呼出し前でSpanを開始し、呼出し後にSpanを終了することでインジェクションされるオブジェクトのメソッドに対するトレース情報を残すことができます。
+InvocationContext#proceed()を呼び出す事で、InterceptorはCDIでインジェクションされるオブジェクトのメソッドを実際に呼び出します。InvocationContext#proceed() の呼出し前でSpanを開始し、呼出し後にSpanを終了することでインジェクションされるオブジェクトのメソッドに対するトレース情報を残すことができます。
 
 ```java
 			span.finish();
