@@ -1,0 +1,58 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: monolith-eshop
+  labels:
+    app: monolith-eshop
+spec:
+  type: NodePort
+  selector:
+    app: monolith-eshop
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: monolith-eshop
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: monolith-eshop
+        version: v1
+    spec:
+      containers:
+      - name: monolith-eshop
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-monolith-eshop:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_URL
+#         Replace JDBC URL as: "jdbc:oracle:thin:@demodb:1521/DEMODB_PDB1.xxx.yyy.oraclevcn.com"
+          value: "jdbc:oracle:thin:@<db hostname>:1521/<db service name>"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_USER
+          value: "demouser"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_PASSWORD
+          value: "<db passwd>"
+        - name: TRACING_SERVICE
+          value: "monolith-eshop"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---

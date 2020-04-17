@@ -1,0 +1,98 @@
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: monolith-eshop-monitor
+  labels:
+    app: monolith-eshop
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: monolith-eshop
+  endpoints:
+  - port: http
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: api-eshop-mall-monitor
+  labels:
+    app: api-eshop-mall
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: api-eshop-mall
+  endpoints:
+  - port: http
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: api-eshop-cart-monitor
+  labels:
+    app: api-eshop-cart
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: api-eshop-cart
+  endpoints:
+  - port: http
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: api-eshop-order-monitor
+  labels:
+    app: api-eshop-order
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: api-eshop-order
+  endpoints:
+  - port: http
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: async-eshop-mall-monitor
+  labels:
+    app: async-eshop-mall
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: async-eshop-mall
+  endpoints:
+  - port: http
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: async-eshop-cart-monitor
+  labels:
+    app: async-eshop-cart
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: async-eshop-cart
+  endpoints:
+  - port: http
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: async-eshop-order-monitor
+  labels:
+    app: async-eshop-order
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: async-eshop-order
+  endpoints:
+  - port: http
+---

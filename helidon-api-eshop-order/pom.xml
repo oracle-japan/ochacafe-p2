@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.helidon.applications</groupId>
+        <artifactId>helidon-mp</artifactId>
+        <version>1.4.1</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.oracle.demo</groupId>
+    <artifactId>helidon-api-eshop-order</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>helidon-api-eshop-order</name>
+
+    <properties>
+         <mainClass>com.oracle.demo.Main</mainClass>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.helidon.microprofile.bundles</groupId>
+            <artifactId>helidon-microprofile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jandex</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>javax.activation-api</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+       <!--  Original util for Helidon-->
+        <dependency>
+		    <groupId>com.oracle.demo.util</groupId>
+		    <artifactId>helidon-sample-util</artifactId>
+		    <version>1.0-SNAPSHOT</version>
+		</dependency>
+
+        <!-- Jaeger tracing -->
+        <dependency>
+			<groupId>io.helidon.tracing</groupId>
+			<artifactId>helidon-tracing-jaeger</artifactId>
+		</dependency>
+
+        <!--  JSON-B Support -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-binding</artifactId>
+        </dependency>
+
+		<!-- for JPA and Oracle UCP -->
+		<!-- for JPA (Provider independent) -->
+		<dependency>
+			<groupId>io.helidon.integrations.cdi</groupId>
+			<artifactId>helidon-integrations-cdi-jpa</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- for JPA (EclipseLink) -->
+		<dependency>
+			<groupId>io.helidon.integrations.cdi</groupId>
+			<artifactId>helidon-integrations-cdi-eclipselink</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Oracle UCP -->
+		<dependency>
+			<groupId>io.helidon.integrations.cdi</groupId>
+			<artifactId>helidon-integrations-cdi-datasource-ucp</artifactId>
+		</dependency>
+
+		<!-- for JTA -->
+		<dependency>
+			<groupId>io.helidon.integrations.cdi</groupId>
+			<artifactId>helidon-integrations-cdi-jta-weld</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
+			<version>2.2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.transaction</groupId>
+			<artifactId>javax.transaction-api</artifactId>
+			<version>1.2</version>
+			<scope>provided</scope>
+		</dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-libs</id>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jboss.jandex</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-index</id>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

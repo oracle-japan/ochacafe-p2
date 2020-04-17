@@ -1,0 +1,13 @@
+### Monolithic app
+helidon-monolith-eshop
+
+### API based app
+helidon-api-eshop-cart
+helidon-api-eshop-mall
+helidon-api-eshop-order
+
+### Async based app
+helidon-async-eshop-cart
+helidon-async-eshop-mall
+helidon-async-eshop-order
+helidon-async-relay

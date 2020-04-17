@@ -1,0 +1,319 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: async-eshop-mall
+  labels:
+    app: async-eshop-mall
+spec:
+  type: NodePort
+  selector:
+    app: async-eshop-mall
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: async-eshop-cart
+  labels:
+    app: async-eshop-cart
+spec:
+  type: NodePort
+  selector:
+    app: async-eshop-cart
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: async-eshop-order
+  labels:
+    app: async-eshop-order
+spec:
+  type: NodePort
+  selector:
+    app: async-eshop-order
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: async-eshop-mall
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: async-eshop-mall
+        version: v1
+    spec:
+      containers:
+      - name: async-eshop-mall
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-async-eshop-mall:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOL_PRODUCT_HOST
+          value: "redis-mall"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOL_PRODUCT_PORT
+          value: "6379"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOLCONFIG_PRODUCT_MAXTOTAL
+          value: "50"
+        - name: TRACING_SERVICE
+          value: "async-eshop-mall"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: async-eshop-cart
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: async-eshop-cart
+        version: v1
+    spec:
+      containers:
+      - name: async-eshop-cart
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-async-eshop-cart:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: APP_ORDER_STREAM_NAME
+          value: "kOrderStream"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOL_CART_HOST
+          value: "redis-cart"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOL_CART_PORT
+          value: "6379"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOL_PRODUCT_HOST
+          value: "redis-mall"
+        - name: REDIS_CLIENTS_JEDIS_JEDISPOOL_PRODUCT_PORT
+          value: "6379"
+        - name: KAFKA_CONNECTION_BOOTSTRAP_DASH_SERVERS
+#         Replace kafka endopoint as: "cell-1.streaming.ap-osaka-1.oci.oraclecloud.com:9092"
+          value: "<oci streaming endpoint>"
+        - name: KAFKA_CONNECTION_SECURITY_DASH_PROTOCOL
+          value: "SASL_SSL"
+        - name: KAFKA_CONNECTION_SASL_DASH_MECHANISM
+          value: "PLAIN"
+        - name: KAFKA_CONNECTION_SASL_DASH_JAAS_DASH_CONFIG
+          value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<tenancy-namespace>/oracleidentitycloudservice/<idcs-username>/<streampool-ocid>\" password=\"<oci auth token>\";"
+        - name: TRACING_SERVICE
+          value: "async-eshop-cart"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: async-eshop-order
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: async-eshop-order
+        version: v1
+    spec:
+      containers:
+      - name: async-eshop-order
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-async-eshop-order:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: APP_PRODUCT_STREAM_NAME
+          value: "kProductStream"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_URL
+#         Replace JDBC URL as: "jdbc:oracle:thin:@demodb:1521/DEMODB_PDB1.xxx.yyy.oraclevcn.com"
+          value: "jdbc:oracle:thin:@<db hostname>:1521/<db service name>"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_USER
+          value: "demouser"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_PASSWORD
+          value: "<db passwd>"
+        - name: KAFKA_CONNECTION_BOOTSTRAP_DASH_SERVERS
+#         Replace kafka endopoint as: "cell-1.streaming.ap-osaka-1.oci.oraclecloud.com:9092"
+          value: "<oci streaming endpoint>"
+        - name: KAFKA_CONNECTION_SECURITY_DASH_PROTOCOL
+          value: "SASL_SSL"
+        - name: KAFKA_CONNECTION_SASL_DASH_MECHANISM
+          value: "PLAIN"
+        - name: KAFKA_CONNECTION_SASL_DASH_JAAS_DASH_CONFIG
+          value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<tenancy-namespace>/oracleidentitycloudservice/<idcs-username>/<streampool-ocid>\" password=\"<oci auth token>\";"
+        - name: TRACING_SERVICE
+          value: "async-eshop-order"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: async-relay-mall
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: async-relay-mall
+        version: v1
+    spec:
+      containers:
+      - name: async-relay-mall
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-async-relay:latest
+#        imagePullPolicy: IfNotPresent
+        env:
+        - name: RELAY_TOPIC_DASH_NAME
+          value: "kProductStream"
+        - name: RELAY_GROUP_DASH_ID
+          value: "update-mall-products"
+        - name: RELAY_TARGET_URL
+          value: "http://async-eshop-mall:8080/product/update"
+        - name: KAFKA_CONNECTION_BOOTSTRAP_DASH_SERVERS
+#         Replace kafka endopoint as: "cell-1.streaming.ap-osaka-1.oci.oraclecloud.com:9092"
+          value: "<oci streaming endpoint>"
+        - name: KAFKA_CONNECTION_SECURITY_DASH_PROTOCOL
+          value: "SASL_SSL"
+        - name: KAFKA_CONNECTION_SASL_DASH_MECHANISM
+          value: "PLAIN"
+        - name: KAFKA_CONNECTION_SASL_DASH_JAAS_DASH_CONFIG
+          value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<tenancy-namespace>/oracleidentitycloudservice/<idcs-username>/<streampool-ocid>\" password=\"<oci auth token>\";"
+        - name: TRACING_SERVICE
+          value: "async-relay-mall"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: async-relay-cart
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: async-relay-cart
+        version: v1
+    spec:
+      containers:
+      - name: async-relay-cart
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-async-relay:latest
+#        imagePullPolicy: IfNotPresent
+        env:
+        - name: RELAY_TOPIC_DASH_NAME
+          value: "kProductStream"
+        - name: RELAY_GROUP_DASH_ID
+          value: "update-cart-products"
+        - name: RELAY_TARGET_URL
+          value: "http://async-eshop-cart:8080/product/update"
+        - name: KAFKA_CONNECTION_BOOTSTRAP_DASH_SERVERS
+#         Replace kafka endopoint as: "cell-1.streaming.ap-osaka-1.oci.oraclecloud.com:9092"
+          value: "<oci streaming endpoint>"
+        - name: KAFKA_CONNECTION_SECURITY_DASH_PROTOCOL
+          value: "SASL_SSL"
+        - name: KAFKA_CONNECTION_SASL_DASH_MECHANISM
+          value: "PLAIN"
+        - name: KAFKA_CONNECTION_SASL_DASH_JAAS_DASH_CONFIG
+          value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<tenancy-namespace>/oracleidentitycloudservice/<idcs-username>/<streampool-ocid>\" password=\"<oci auth token>\";"
+        - name: TRACING_SERVICE
+          value: "async-relay-cart"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: async-relay-order
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: async-relay-order
+        version: v1
+    spec:
+      containers:
+      - name: async-relay-order
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-async-relay:latest
+#        imagePullPolicy: IfNotPresent
+        env:
+        - name: RELAY_TOPIC_DASH_NAME
+          value: "kOrderStream"
+        - name: RELAY_GROUP_DASH_ID
+          value: "accept-order"
+        - name: RELAY_TARGET_URL
+          value: "http://async-eshop-order:8080/order/entry"
+        - name: RELAY_POLL_DASH_TIMEOUT
+          value: "1000"
+        - name: KAFKA_CONNECTION_BOOTSTRAP_DASH_SERVERS
+#         Replace kafka endopoint as: "cell-1.streaming.ap-osaka-1.oci.oraclecloud.com:9092"
+          value: "<oci streaming endpoint>"
+        - name: KAFKA_CONNECTION_SECURITY_DASH_PROTOCOL
+          value: "SASL_SSL"
+        - name: KAFKA_CONNECTION_SASL_DASH_MECHANISM
+          value: "PLAIN"
+        - name: KAFKA_CONNECTION_SASL_DASH_JAAS_DASH_CONFIG
+          value: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<tenancy-namespace>/oracleidentitycloudservice/<idcs-username>/<streampool-ocid>\" password=\"<oci auth token>\";"
+        - name: TRACING_SERVICE
+          value: "async-relay-order"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---

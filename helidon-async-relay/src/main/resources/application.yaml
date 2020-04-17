@@ -1,0 +1,43 @@
+
+server:
+  port: 8080
+  host: 0.0.0.0
+
+kafka:
+  connection:
+### OCI Streaming settings
+#    bootstrap-servers: "<oci stream pool endpoint>:9092"
+#    security-protocol: SASL_SSL
+#    sasl-jaas-config: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"<tenancy name>/oracleidentitycloudservice/<oci username>/<oci stream pool ocid>\" password=\"<oci auth token>\";"
+    bootstrap-servers: "kafka:9092"
+    security-protocol: PLAINTEXT
+    sasl-mechanism: PLAIN
+    sasl-jaas-config: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-secret\";"
+
+  config:
+    max-request-size: 1048576
+    retries: 5
+
+  serializer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  deserializer:
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+relay:
+#  topic-name: kOrderStream
+#  group-id: async-order
+  poll-timeout: 10000
+  target:
+    type: single-target
+#    url: http://localhost:10280/order/entry
+
+tracing:
+#  service: local-async-relay
+  sampler-type: remote
+  sampler-manager: localhost:5778
+
+
+
+

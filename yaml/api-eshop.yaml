@@ -1,0 +1,171 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: api-eshop-mall
+  labels:
+    app: api-eshop-mall
+spec:
+  type: NodePort
+  selector:
+    app: api-eshop-mall
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: api-eshop-cart
+  labels:
+    app: api-eshop-cart
+spec:
+  type: NodePort
+  selector:
+    app: api-eshop-cart
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: api-eshop-order
+  labels:
+    app: api-eshop-order
+spec:
+  type: NodePort
+  selector:
+    app: api-eshop-order
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+---
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: api-eshop-mall
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api-eshop-mall
+        version: v1
+    spec:
+      containers:
+      - name: api-eshop-mall
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-api-eshop-mall:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: APP_PRODUCT_API_BASEURI
+          value: "http://api-eshop-order:8080/product"
+        - name: TRACING_SERVICE
+          value: "api-eshop-mall"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: api-eshop-cart
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api-eshop-cart
+        version: v1
+    spec:
+      containers:
+      - name: api-eshop-cart
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-api-eshop-cart:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: APP_PRODUCT_API_BASEURI
+          value: "http://api-eshop-order:8080/product"
+        - name: APP_ORDER_API_BASEURI
+          value: "http://api-eshop-order:8080/order"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_URL
+#         Replace JDBC URL as: "jdbc:oracle:thin:@demodb:1521/DEMODB_PDB1.xxx.yyy.oraclevcn.com"
+          value: "jdbc:oracle:thin:@<db hostname>:1521/<db service name>"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_USER
+          value: "demouser"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_PASSWORD
+          value: "<db passwd>"
+        - name: TRACING_SERVICE
+          value: "api-eshop-cart"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: api-eshop-order
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api-eshop-order
+        version: v1
+    spec:
+      containers:
+      - name: api-eshop-order
+        image: <region-key>.ocir.io/<tenancy-namespace>/<repo-name>/helidon-api-eshop-order:latest
+#        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "500m"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_URL
+#         Replace JDBC URL as: "jdbc:oracle:thin:@demodb:1521/DEMODB_PDB1.xxx.yyy.oraclevcn.com"
+          value: "jdbc:oracle:thin:@<db hostname>:1521/<db service name>"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_USER
+          value: "demouser"
+        - name: JAVAX_SQL_DATASOURCE_DEFAULTDATASOURCE_PASSWORD
+          value: "<db passwd>"
+        - name: TRACING_SERVICE
+          value: "api-eshop-order"
+        - name: TRACING_HOST
+          value: "jaeger.monitoring"
+        - name: TRACING_SAMPLER_DASH_MANAGER
+          value: "jaeger.monitoring:5778"
+      imagePullSecrets:
+        - name: <ocir secret>
+---

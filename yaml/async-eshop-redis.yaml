@@ -1,0 +1,70 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-mall
+  labels:
+    app: redis-mall
+spec:
+  type: NodePort
+  selector:
+    app: redis-mall
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-cart
+  labels:
+    app: redis-cart
+spec:
+  type: NodePort
+  selector:
+    app: redis-cart
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: redis-mall
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis-mall
+        version: v1
+    spec:
+      containers:
+      - name: redis-mall
+        image: redis:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        command: ["redis-server", "--appendonly", "yes"]
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: redis-cart
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis-cart
+        version: v1
+    spec:
+      containers:
+      - name: redis-cart
+        image: redis:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        command: ["redis-server", "--appendonly", "yes"]
+---
